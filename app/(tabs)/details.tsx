@@ -128,6 +128,10 @@ const PeripheralDetails = () => {
         return 'Generic Attribute Service';
       case '180a':
         return 'Device Information Service';
+      // LMP91000 specific
+      case 'ac566969-3134-47a1-bc17-4ece8690fc12':
+        return 'Chronoamperometry';
+      // Unrecognized
       default:
         return 'Service';
     }
@@ -157,6 +161,14 @@ const PeripheralDetails = () => {
         return 'Software Revision String';
       case '2a29':
         return 'Manufacturer Name String';
+      // Chronoamperometry
+      case 'b65c184f-232b-4a56-b75f-4fead5378693':
+        return 'Start';
+      case 'f4aa8625-89b2-4431-a2fa-a521f75a9725':
+        return 'Results';
+      case 'b1ff3efa-ca62-4131-93d7-15e8a0eb49f0':
+        return 'Read Index';
+      // Unrecognized
       default:
         return 'Characteristic';
     }
