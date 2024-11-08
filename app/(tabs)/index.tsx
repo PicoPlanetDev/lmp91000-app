@@ -301,7 +301,7 @@ const App = () => {
 
   const viewPeripheralDetails = (connectedPeripheralId: string) => {
     // router.navigate('details');
-    router.navigate({ pathname: 'details', params: { connectedPeripheralId } });
+    router.navigate({ pathname: '/details', params: { connectedPeripheralId } }); // CHECK IF THIS IS RIGHT, PREVIOUSLY WAS 'details'
 
   }
 

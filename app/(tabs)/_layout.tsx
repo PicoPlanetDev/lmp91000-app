@@ -20,6 +20,13 @@ export default function TabLayout() {
                 }}
             />
             <MaterialBottomTabs.Screen
+                name="lmp91000"
+                options={{
+                    title: 'LMP91000',
+                    tabBarIcon: 'chart-line',
+                }}
+            />
+            <MaterialBottomTabs.Screen
                 name="settings"
                 options={{
                     title: 'Settings',
