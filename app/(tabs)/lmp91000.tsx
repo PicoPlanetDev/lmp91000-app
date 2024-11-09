@@ -286,7 +286,7 @@ const PeripheralDetails = () => {
   };
 
   const getChronoamperometryResults = () => {
-    const results_array = [];
+    const results_array: number[] = [];
     for (let i = 0; i < 3; i++) {
       writeCharacteristic(
         selectedPeripheralId,
@@ -300,6 +300,21 @@ const PeripheralDetails = () => {
         "f4aa8625-89b2-4431-a2fa-a521f75a9725"
       ).then((value) => {
         console.log("Results", value);
+        // value will be a 200-byte array of 8-bit integers
+        // where each pair of bytes represents a 16-bit integer
+        // the first byte is the least significant byte
+        // the second byte is the most significant byte
+        if (!value) {
+          console.warn("No results found");
+          return;
+        }
+        for (let j = 0; j < value.length; j += 2) {
+          let data_point = value[j] + (value[j + 1] << 8);
+          results_array.push(data_point);
+        }
+        setResults(
+          results_array.map((value, index) => ({ x: index, y: value }))
+        );
       });
     }
   };
