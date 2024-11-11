@@ -336,12 +336,13 @@ const PeripheralDetails = () => {
       );
 
       if (!value) {
-        console.error("No value found");
+        console.error("No results found");
         return;
       }
 
+      // iterate over the value array and convert the pairs of little endian bytes to a number
       for (let j = 0; j < value.length; j += 2) {
-        let data_point = value[j] + (value[j + 1] << 8); // little endian, so shift the second byte by 8 bits and add
+        const data_point = value[j] + (value[j + 1] << 8);
         results_array.push(data_point);
       }
     }
