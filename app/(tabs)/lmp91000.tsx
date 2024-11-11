@@ -30,6 +30,7 @@ import {
   VerticalAxis,
 } from "react-native-responsive-linechart";
 import RNFS from "react-native-fs";
+import { FileSystem } from "react-native-file-access";
 
 const PeripheralDetails = () => {
   const navigation = useNavigation();
@@ -297,9 +298,13 @@ const PeripheralDetails = () => {
       "b65c184f-232b-4a56-b75f-4fead5378693",
       "1"
     );
+    setSnackBarMessage("Wait a second for completion");
+    setSnackBarVisible(true);
   };
 
   const getChronoamperometryResults = async () => {
+    setSnackBarMessage("Wait a few seconds for completion");
+    setSnackBarVisible(true);
     const results_array: number[] = [];
     for (let i = 0; i < 3; i++) {
       await writeCharacteristic(
@@ -348,6 +353,7 @@ const PeripheralDetails = () => {
     }
     setResults(results_array.map((value, index) => ({ x: index, y: value })));
     console.log("Results", results_array);
+    setSnackBarVisible(false);
   };
 
   // results will be a list of [{x: number, y: number}] objects
@@ -359,13 +365,23 @@ const PeripheralDetails = () => {
     const headers = "Time (ms),Voltage (mV)\n";
     const rows = results.map((result) => `${result.x},${result.y}\n`).join("");
     const csv = `${headers}${rows}`;
-    const path = `${RNFS.DocumentDirectoryPath}/results.csv`;
+    const filename = `lmp91000-results-${new Date()
+      .toISOString()
+      .replace(/:/g, "-")}.csv`;
+    const temp_path = `${RNFS.TemporaryDirectoryPath}/${filename}`;
 
     try {
-      await RNFS.writeFile(path, csv, "utf8");
-      console.log("Results saved to", path);
+      await RNFS.writeFile(temp_path, csv, "utf8");
+      FileSystem.cpExternal(temp_path, `${filename}`, "downloads");
+
+      // Log and inform user
+      console.log("Results saved to", "downloads/" + filename);
+      setSnackBarMessage("Results saved to downloads/" + filename);
+      setSnackBarVisible(true);
     } catch (error) {
       console.error("Error saving results to CSV", error);
+      setSnackBarMessage("Error saving results to CSV");
+      setSnackBarVisible(true);
     }
   };
 
