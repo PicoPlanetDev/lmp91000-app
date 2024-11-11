@@ -26,10 +26,10 @@ import Dropdown from "@/components/Dropdown";
 import {
   Chart,
   Line,
-  Area,
   HorizontalAxis,
   VerticalAxis,
 } from "react-native-responsive-linechart";
+import RNFS from "react-native-fs";
 
 const PeripheralDetails = () => {
   const navigation = useNavigation();
@@ -355,6 +355,20 @@ const PeripheralDetails = () => {
     { x: 0, y: 0 },
   ]);
 
+  const saveResultsToCSV = async () => {
+    const headers = "Time (ms),Voltage (mV)\n";
+    const rows = results.map((result) => `${result.x},${result.y}\n`).join("");
+    const csv = `${headers}${rows}`;
+    const path = `${RNFS.DocumentDirectoryPath}/results.csv`;
+
+    try {
+      await RNFS.writeFile(path, csv, "utf8");
+      console.log("Results saved to", path);
+    } catch (error) {
+      console.error("Error saving results to CSV", error);
+    }
+  };
+
   return (
     <Portal.Host>
       <ScrollView style={styles.body}>
@@ -467,7 +481,7 @@ const PeripheralDetails = () => {
           </Button>
           <Button
             mode="outlined"
-            onPress={retrieveConnected}
+            onPress={saveResultsToCSV}
             icon="content-save"
           >
             Save CSV
