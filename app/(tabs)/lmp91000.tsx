@@ -13,6 +13,7 @@ import {
   Snackbar,
   Text,
   TextInput,
+  useTheme,
 } from "react-native-paper";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import BleManager, {
@@ -34,6 +35,8 @@ const PeripheralDetails = () => {
   const navigation = useNavigation();
   const router = useRouter();
   const params = useLocalSearchParams();
+
+  const theme = useTheme();
 
   const { peripherals, setPeripherals } = React.useContext(PeripheralsContext);
 
@@ -133,6 +136,17 @@ const PeripheralDetails = () => {
         peripheralId,
         service,
         characteristic
+      );
+      console.log(
+        "[readCharacteristic]",
+        "peripheralId",
+        peripheralId,
+        "service",
+        service,
+        "char",
+        characteristic,
+        "data",
+        value
       );
       return value;
       // console.log("[readCharacteristic]", "peripheralId", peripheralId, "service", service, "char", characteristic, "\n\tvalue", value);
@@ -285,38 +299,54 @@ const PeripheralDetails = () => {
     );
   };
 
-  const getChronoamperometryResults = () => {
+  const getChronoamperometryResults = async () => {
     const results_array: number[] = [];
     for (let i = 0; i < 3; i++) {
-      writeCharacteristic(
+      await writeCharacteristic(
         selectedPeripheralId,
         "ac566969-3134-47a1-bc17-4ece8690fc12",
         "b1ff3efa-ca62-4131-93d7-15e8a0eb49f0",
         i.toString()
       );
-      readCharacteristic(
+
+      // we cannot read the results immediately, so we need to wait a bit
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // replace the above hardcoded wait with a loop that waits for the write index (above) to change
+      // and then reads the results
+      // while (true) {
+      //   const readIndex = await readCharacteristic(
+      //     selectedPeripheralId,
+      //     "ac566969-3134-47a1-bc17-4ece8690fc12",
+      //     "b1ff3efa-ca62-4131-93d7-15e8a0eb49f0"
+      //   );
+      //   if (!readIndex) {
+      //     console.error("No read index found");
+      //     return;
+      //   }
+      //   if (readIndex[0] === i) {
+      //     break;
+      //   }
+      // }
+
+      const value = await readCharacteristic(
         selectedPeripheralId,
         "ac566969-3134-47a1-bc17-4ece8690fc12",
         "f4aa8625-89b2-4431-a2fa-a521f75a9725"
-      ).then((value) => {
-        console.log("Results", value);
-        // value will be a 200-byte array of 8-bit integers
-        // where each pair of bytes represents a 16-bit integer
-        // the first byte is the least significant byte
-        // the second byte is the most significant byte
-        if (!value) {
-          console.warn("No results found");
-          return;
-        }
-        for (let j = 0; j < value.length; j += 2) {
-          let data_point = value[j] + (value[j + 1] << 8);
-          results_array.push(data_point);
-        }
-        setResults(
-          results_array.map((value, index) => ({ x: index, y: value }))
-        );
-      });
+      );
+
+      if (!value) {
+        console.error("No value found");
+        return;
+      }
+
+      for (let j = 0; j < value.length; j += 2) {
+        let data_point = value[j] + (value[j + 1] << 8); // little endian, so shift the second byte by 8 bits and add
+        results_array.push(data_point);
+      }
     }
+    setResults(results_array.map((value, index) => ({ x: index, y: value })));
+    console.log("Results", results_array);
   };
 
   // results will be a list of [{x: number, y: number}] objects
@@ -361,12 +391,63 @@ const PeripheralDetails = () => {
             xDomain={{ min: 0, max: 300 }}
             yDomain={{ min: 0, max: 3300 }}
           >
-            <VerticalAxis tickCount={11} />
-            <HorizontalAxis tickCount={4} />
+            <VerticalAxis
+              tickCount={11}
+              theme={{
+                axis: {
+                  visible: true,
+                  stroke: { color: theme.colors.outline, width: 2 },
+                },
+                grid: {
+                  visible: true,
+                  stroke: { color: theme.colors.outline, width: 1 },
+                },
+                labels: {
+                  label: {
+                    color: theme.colors.primary,
+                  },
+                },
+                ticks: {
+                  stroke: {
+                    color: theme.colors.outline,
+                  },
+                },
+              }}
+            />
+            <HorizontalAxis
+              tickCount={4}
+              theme={{
+                axis: {
+                  visible: true,
+                  stroke: { color: theme.colors.outline, width: 2 },
+                },
+                grid: {
+                  visible: true,
+                  stroke: { color: theme.colors.outline, width: 1 },
+                },
+                labels: {
+                  label: {
+                    color: theme.colors.primary,
+                  },
+                },
+                ticks: {
+                  stroke: {
+                    color: theme.colors.outline,
+                  },
+                },
+              }}
+            />
             <Line
               theme={{
-                stroke: { color: "#000000", width: 0 },
-                scatter: { default: { width: 4, height: 4, rx: 2 } },
+                stroke: { color: theme.colors.primary, width: 0 },
+                scatter: {
+                  default: {
+                    width: 4,
+                    height: 4,
+                    rx: 2,
+                    color: theme.colors.primary,
+                  },
+                },
               }}
             />
           </Chart>
