@@ -31,6 +31,7 @@ import {
 } from "react-native-responsive-linechart";
 import RNFS from "react-native-fs";
 import { FileSystem } from "react-native-file-access";
+import VoltageInput from "@/components/VoltageInput";
 
 const PeripheralDetails = () => {
   const navigation = useNavigation();
@@ -317,23 +318,6 @@ const PeripheralDetails = () => {
       // we cannot read the results immediately, so we need to wait a bit
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      // replace the above hardcoded wait with a loop that waits for the write index (above) to change
-      // and then reads the results
-      // while (true) {
-      //   const readIndex = await readCharacteristic(
-      //     selectedPeripheralId,
-      //     "ac566969-3134-47a1-bc17-4ece8690fc12",
-      //     "b1ff3efa-ca62-4131-93d7-15e8a0eb49f0"
-      //   );
-      //   if (!readIndex) {
-      //     console.error("No read index found");
-      //     return;
-      //   }
-      //   if (readIndex[0] === i) {
-      //     break;
-      //   }
-      // }
-
       const value = await readCharacteristic(
         selectedPeripheralId,
         "ac566969-3134-47a1-bc17-4ece8690fc12",
@@ -384,6 +368,12 @@ const PeripheralDetails = () => {
       setSnackBarVisible(true);
     }
   };
+
+  const [voltages, setVoltages] = React.useState({
+    v0: "",
+    v1: "",
+    v2: "",
+  });
 
   return (
     <Portal.Host>
@@ -503,6 +493,8 @@ const PeripheralDetails = () => {
             Save CSV
           </Button>
         </View>
+
+        <VoltageInput onChanged={setVoltages}></VoltageInput>
 
         <Portal>
           <Snackbar
