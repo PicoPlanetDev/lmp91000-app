@@ -223,6 +223,7 @@ const PeripheralDetails = () => {
   const CHARACTERISTIC_ACTIVE_LMP91000 = "6945ae32-4384-4d21-bd63-54eda76b1d62";
   const CHARACTERISTIC_VOLTAGES = "7e416a4d-ffcb-4006-90c4-b890630d4bd2";
   const CHARACTERISTIC_STATUS = "23c0714a-d460-4001-a9e0-a34d75088e31";
+  const CHARACTERISTIC_TIA_GAIN = "5409175c-80fe-4892-8b17-caa75855c678";
 
   // Helper functions to get human-readable strings for common services and characteristics
   const getServiceDescriptionString = (uuid: string) => {
@@ -279,6 +280,8 @@ const PeripheralDetails = () => {
         return "Voltages";
       case CHARACTERISTIC_STATUS:
         return "Status";
+      case CHARACTERISTIC_TIA_GAIN:
+        return "TIA Gain";
 
       // Unrecognized
       default:
@@ -411,7 +414,37 @@ const PeripheralDetails = () => {
       CHARACTERISTIC_VOLTAGES,
       voltages_string
     );
+
+    // TIA Gain
+    writeCharacteristic(
+      selectedPeripheralId,
+      SERVICE_CHRONOAMPEROMETRY,
+      CHARACTERISTIC_TIA_GAIN,
+      tiaGain
+    );
   };
+
+  // TIA gain
+  const [tiaGain, setTiaGain] = React.useState("3");
+  const onTiaGainChange = (value: string) => {
+    setTiaGain(value);
+    console.log("TIA Gain", value);
+  };
+  const tiaGainLabels = [
+    "External (not recommended)",
+    "2.75kΩ",
+    "3.5kΩ",
+    "7kΩ",
+    "14kΩ",
+    "35kΩ",
+    "120kΩ",
+    "350kΩ",
+  ];
+  const tiaGainValues = ["0", "1", "2", "3", "4", "5", "6", "7"];
+  const tiaGainOptions = tiaGainLabels.map((label, index) => ({
+    label,
+    value: tiaGainValues[index],
+  }));
 
   return (
     <Portal.Host>
@@ -547,6 +580,15 @@ const PeripheralDetails = () => {
         </View>
 
         <VoltageInput onChanged={setVoltages}></VoltageInput>
+
+        <View>
+          <Dropdown
+            label="TIA Gain"
+            options={tiaGainOptions}
+            value={tiaGain}
+            onChange={onTiaGainChange}
+          />
+        </View>
 
         <Portal>
           <Snackbar
