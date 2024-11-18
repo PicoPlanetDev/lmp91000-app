@@ -216,6 +216,14 @@ const PeripheralDetails = () => {
 
   const selectedPeripheral = peripherals.get(selectedPeripheralId);
 
+  const SERVICE_CHRONOAMPEROMETRY = "ac566969-3134-47a1-bc17-4ece8690fc12";
+  const CHARACTERISTIC_START = "b65c184f-232b-4a56-b75f-4fead5378693";
+  const CHARACTERISTIC_RESULTS = "f4aa8625-89b2-4431-a2fa-a521f75a9725";
+  const CHARACTERISTIC_READ_INDEX = "b1ff3efa-ca62-4131-93d7-15e8a0eb49f0";
+  const CHARACTERISTIC_ACTIVE_LMP91000 = "6945ae32-4384-4d21-bd63-54eda76b1d62";
+  const CHARACTERISTIC_VOLTAGES = "7e416a4d-ffcb-4006-90c4-b890630d4bd2";
+  const CHARACTERISTIC_STATUS = "23c0714a-d460-4001-a9e0-a34d75088e31";
+
   // Helper functions to get human-readable strings for common services and characteristics
   const getServiceDescriptionString = (uuid: string) => {
     switch (uuid) {
@@ -226,7 +234,7 @@ const PeripheralDetails = () => {
       case "180a":
         return "Device Information Service";
       // LMP91000 specific
-      case "ac566969-3134-47a1-bc17-4ece8690fc12":
+      case SERVICE_CHRONOAMPEROMETRY:
         return "Chronoamperometry";
       // Unrecognized
       default:
@@ -259,12 +267,19 @@ const PeripheralDetails = () => {
       case "2a29":
         return "Manufacturer Name String";
       // Chronoamperometry
-      case "b65c184f-232b-4a56-b75f-4fead5378693":
+      case CHARACTERISTIC_START:
         return "Start";
-      case "f4aa8625-89b2-4431-a2fa-a521f75a9725":
+      case CHARACTERISTIC_RESULTS:
         return "Results";
-      case "b1ff3efa-ca62-4131-93d7-15e8a0eb49f0":
+      case CHARACTERISTIC_READ_INDEX:
         return "Read Index";
+      case CHARACTERISTIC_ACTIVE_LMP91000:
+        return "Active LMP91000";
+      case CHARACTERISTIC_VOLTAGES:
+        return "Voltages";
+      case CHARACTERISTIC_STATUS:
+        return "Status";
+
       // Unrecognized
       default:
         return "Characteristic";
@@ -295,8 +310,8 @@ const PeripheralDetails = () => {
   const runChronoamperometry = () => {
     writeCharacteristic(
       selectedPeripheralId,
-      "ac566969-3134-47a1-bc17-4ece8690fc12",
-      "b65c184f-232b-4a56-b75f-4fead5378693",
+      SERVICE_CHRONOAMPEROMETRY,
+      CHARACTERISTIC_START,
       "1"
     );
     setSnackBarMessage("Wait a second for completion");
@@ -310,8 +325,8 @@ const PeripheralDetails = () => {
     for (let i = 0; i < 3; i++) {
       await writeCharacteristic(
         selectedPeripheralId,
-        "ac566969-3134-47a1-bc17-4ece8690fc12",
-        "b1ff3efa-ca62-4131-93d7-15e8a0eb49f0",
+        SERVICE_CHRONOAMPEROMETRY,
+        CHARACTERISTIC_READ_INDEX,
         i.toString()
       );
 
@@ -320,8 +335,8 @@ const PeripheralDetails = () => {
 
       const value = await readCharacteristic(
         selectedPeripheralId,
-        "ac566969-3134-47a1-bc17-4ece8690fc12",
-        "f4aa8625-89b2-4431-a2fa-a521f75a9725"
+        SERVICE_CHRONOAMPEROMETRY,
+        CHARACTERISTIC_RESULTS
       );
 
       if (!value) {
@@ -374,6 +389,29 @@ const PeripheralDetails = () => {
     v1: "",
     v2: "",
   });
+
+  const readChronoamperometryConfiguration = async () => {};
+
+  const saveChronoamperometryConfiguration = async () => {
+    // Voltages
+    const voltages_array = [
+      parseInt(voltages.v0),
+      parseInt(voltages.v1),
+      parseInt(voltages.v2),
+    ];
+    // convert the voltages to a string (space separated) of 6 bytes, where each pair is a little endian 16-bit integer
+    const voltages_string = voltages_array
+      .map((voltage) => [voltage & 0xff, (voltage >> 8) & 0xff])
+      .flat()
+      .join(" ");
+    console.log("Voltages", voltages_string);
+    writeCharacteristic(
+      selectedPeripheralId,
+      SERVICE_CHRONOAMPEROMETRY,
+      CHARACTERISTIC_VOLTAGES,
+      voltages_string
+    );
+  };
 
   return (
     <Portal.Host>
@@ -491,6 +529,20 @@ const PeripheralDetails = () => {
             icon="content-save"
           >
             Save CSV
+          </Button>
+        </View>
+
+        <View>
+          <Text variant="titleMedium">Configuration</Text>
+        </View>
+
+        <View style={styles.buttonGroup}>
+          <Button
+            mode="outlined"
+            onPress={runChronoamperometry}
+            icon="content-save"
+          >
+            Save
           </Button>
         </View>
 
