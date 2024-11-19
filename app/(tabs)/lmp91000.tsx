@@ -310,6 +310,8 @@ const PeripheralDetails = () => {
     setWriteDialogVisible(true);
   };
 
+  const [isChronoamperometryRunning, setIsChronoamperometryRunning] =
+    React.useState(false);
   const runChronoamperometry = () => {
     writeCharacteristic(
       selectedPeripheralId,
@@ -317,8 +319,16 @@ const PeripheralDetails = () => {
       CHARACTERISTIC_START,
       "1"
     );
-    setSnackBarMessage("Wait a second for completion");
+    // Status
+    setIsChronoamperometryRunning(true);
+    setSnackBarMessage("Chronoamperometry in progress...");
     setSnackBarVisible(true);
+
+    // Clear busy status after a second
+    setTimeout(() => {
+      setIsChronoamperometryRunning(false);
+      setSnackBarVisible(false);
+    }, 1000);
   };
 
   const getChronoamperometryResults = async () => {
@@ -546,7 +556,13 @@ const PeripheralDetails = () => {
         </View>
 
         <View style={styles.buttonGroup}>
-          <Button mode="outlined" onPress={runChronoamperometry} icon="play">
+          <Button
+            mode="outlined"
+            onPress={runChronoamperometry}
+            icon="play"
+            loading={isChronoamperometryRunning}
+            disabled={isChronoamperometryRunning}
+          >
             Run
           </Button>
           <Button
