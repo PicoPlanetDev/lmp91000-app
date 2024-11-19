@@ -599,9 +599,9 @@ const PeripheralDetails = () => {
           <Button
             mode="outlined"
             onPress={saveChronoamperometryConfiguration}
-            icon="content-save"
+            icon="check"
           >
-            Save
+            Apply
           </Button>
         </View>
 
