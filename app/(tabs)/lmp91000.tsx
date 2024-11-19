@@ -331,9 +331,13 @@ const PeripheralDetails = () => {
     }, 1000);
   };
 
+  const [isRecievingResults, setIsRecievingResults] = React.useState(false);
   const getChronoamperometryResults = async () => {
-    setSnackBarMessage("Wait a few seconds for completion");
+    // Visual status inddicator
+    setIsRecievingResults(true);
+    setSnackBarMessage("Recieving results...");
     setSnackBarVisible(true);
+
     const results_array: number[] = [];
     for (let i = 0; i < 3; i++) {
       await writeCharacteristic(
@@ -365,7 +369,10 @@ const PeripheralDetails = () => {
     }
     setResults(results_array.map((value, index) => ({ x: index, y: value })));
     console.log("Results", results_array);
+
+    // Clear busy status
     setSnackBarVisible(false);
+    setIsRecievingResults(false);
   };
 
   // results will be a list of [{x: number, y: number}] objects
@@ -569,6 +576,8 @@ const PeripheralDetails = () => {
             mode="outlined"
             onPress={getChronoamperometryResults}
             icon="download"
+            loading={isRecievingResults}
+            disabled={isRecievingResults}
           >
             Get results
           </Button>
@@ -576,6 +585,7 @@ const PeripheralDetails = () => {
             mode="outlined"
             onPress={saveResultsToCSV}
             icon="content-save"
+            disabled={results.length > 1 ? false : true}
           >
             Save CSV
           </Button>
