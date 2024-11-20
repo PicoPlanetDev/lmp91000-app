@@ -463,6 +463,19 @@ const PeripheralDetails = () => {
     value: tiaGainValues[index],
   }));
 
+  // Experiment mode
+  const experimentModeLabels = [
+    "Chronoamperometry", // trigger with constant voltage
+    "Cyclic Voltammetry", // linearly sweep voltage up then back down
+    "Square Wave Voltammetry", // linear sweep with square wave modulation steps
+    "Normal Pulse Voltammetry", // repeated short pulses of constant voltage
+  ];
+  const experimentModeOptions = experimentModeLabels.map((label, index) => ({
+    label,
+    value: index.toString(),
+  }));
+  const [experimentMode, setExperimentMode] = React.useState("0");
+
   return (
     <Portal.Host>
       <ScrollView style={styles.body}>
@@ -491,8 +504,18 @@ const PeripheralDetails = () => {
 
         <Divider />
 
+        {/* Experiment mode */}
         <View>
-          <Text variant="titleMedium">Chronoamperometry</Text>
+          <Dropdown
+            label="Experiment mode"
+            options={experimentModeOptions}
+            value={experimentMode}
+            onChange={setExperimentMode}
+          />
+        </View>
+
+        <View>
+          <Text variant="titleMedium">Results</Text>
           <Chart
             style={{ height: 200, width: 400 }}
             data={results}
