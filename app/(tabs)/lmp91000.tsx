@@ -635,12 +635,7 @@ const PeripheralDetails = () => {
           </Button>
         </View>
 
-        {
-          // show voltage input in CA mode only
-          experimentMode === "0" && (
-            <VoltageInput onChanged={setVoltages}></VoltageInput>
-          )
-        }
+        {/* Eventually the TIA gain needs to be abstracted */}
         <View>
           <Dropdown
             label="TIA Gain"
@@ -649,6 +644,13 @@ const PeripheralDetails = () => {
             onChange={onTiaGainChange}
           />
         </View>
+
+        {
+          // show voltage input in CA mode only
+          experimentMode === "0" && (
+            <VoltageInput onChanged={setVoltages}></VoltageInput>
+          )
+        }
 
         {
           // show CV setup in CV mode only
