@@ -16,3 +16,27 @@ Customized from <https://github.com/PicoPlanetDev/blinky-app>, right now impleme
 - Settings
   - Allow app permissions
   - Enable Bluetooth
+
+## Build
+
+For a development build,
+
+```bash
+bun run android
+```
+
+For a final/release build, use
+
+```bash
+bunx react-native build-android --mode=release
+```
+
+to create an AAB file in the `android/app/build/outputs/bundle/release` directory.
+Then use
+
+```bash
+cd android
+.\gradlew assembleRelease
+```
+
+to generate a release APK file located in the `android\app\build\outputs\apk\release` directory.

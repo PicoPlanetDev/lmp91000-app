@@ -48,6 +48,7 @@ const VoltageInput: React.FC<VoltageInputProps> = ({ onChanged }) => {
         value={v0}
         onChangeText={(v0) => setv0(v0)}
         error={!isInputValid(v0)}
+        right={<TextInput.Affix text="mV" />}
       />
       <TextInput
         style={styles.textInput}
@@ -56,6 +57,7 @@ const VoltageInput: React.FC<VoltageInputProps> = ({ onChanged }) => {
         value={v1}
         onChangeText={(v1) => setv1(v1)}
         error={!isInputValid(v1)}
+        right={<TextInput.Affix text="mV" />}
       />
       <TextInput
         style={styles.textInput}
@@ -64,6 +66,7 @@ const VoltageInput: React.FC<VoltageInputProps> = ({ onChanged }) => {
         value={v2}
         onChangeText={(v2) => setv2(v2)}
         error={!isInputValid(v2)}
+        right={<TextInput.Affix text="mV" />}
       />
     </View>
   );

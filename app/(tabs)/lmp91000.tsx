@@ -32,6 +32,7 @@ import {
 import RNFS from "react-native-fs";
 import { FileSystem } from "react-native-file-access";
 import VoltageInput from "@/components/VoltageInput";
+import CVSetup from "@/components/CVSetup";
 
 const PeripheralDetails = () => {
   const navigation = useNavigation();
@@ -216,7 +217,7 @@ const PeripheralDetails = () => {
 
   const selectedPeripheral = peripherals.get(selectedPeripheralId);
 
-  const SERVICE_CHRONOAMPEROMETRY = "ac566969-3134-47a1-bc17-4ece8690fc12";
+  const SERVICE_LMP91000 = "ac566969-3134-47a1-bc17-4ece8690fc12";
   const CHARACTERISTIC_START = "b65c184f-232b-4a56-b75f-4fead5378693";
   const CHARACTERISTIC_RESULTS = "f4aa8625-89b2-4431-a2fa-a521f75a9725";
   const CHARACTERISTIC_READ_INDEX = "b1ff3efa-ca62-4131-93d7-15e8a0eb49f0";
@@ -224,6 +225,7 @@ const PeripheralDetails = () => {
   const CHARACTERISTIC_VOLTAGES = "7e416a4d-ffcb-4006-90c4-b890630d4bd2";
   const CHARACTERISTIC_STATUS = "23c0714a-d460-4001-a9e0-a34d75088e31";
   const CHARACTERISTIC_TIA_GAIN = "5409175c-80fe-4892-8b17-caa75855c678";
+  const CHARACTERISTIC_EXPERIMENT = "b48e58cd-4a7d-42d7-8d96-a7c917eee619";
 
   // Helper functions to get human-readable strings for common services and characteristics
   const getServiceDescriptionString = (uuid: string) => {
@@ -235,8 +237,8 @@ const PeripheralDetails = () => {
       case "180a":
         return "Device Information Service";
       // LMP91000 specific
-      case SERVICE_CHRONOAMPEROMETRY:
-        return "Chronoamperometry";
+      case SERVICE_LMP91000:
+        return "LMP91000";
       // Unrecognized
       default:
         return "Service";
@@ -282,6 +284,8 @@ const PeripheralDetails = () => {
         return "Status";
       case CHARACTERISTIC_TIA_GAIN:
         return "TIA Gain";
+      case CHARACTERISTIC_EXPERIMENT:
+        return "Experiment";
 
       // Unrecognized
       default:
@@ -315,7 +319,7 @@ const PeripheralDetails = () => {
   const runChronoamperometry = () => {
     writeCharacteristic(
       selectedPeripheralId,
-      SERVICE_CHRONOAMPEROMETRY,
+      SERVICE_LMP91000,
       CHARACTERISTIC_START,
       "1"
     );
@@ -342,7 +346,7 @@ const PeripheralDetails = () => {
     for (let i = 0; i < 3; i++) {
       await writeCharacteristic(
         selectedPeripheralId,
-        SERVICE_CHRONOAMPEROMETRY,
+        SERVICE_LMP91000,
         CHARACTERISTIC_READ_INDEX,
         i.toString()
       );
@@ -352,7 +356,7 @@ const PeripheralDetails = () => {
 
       const value = await readCharacteristic(
         selectedPeripheralId,
-        SERVICE_CHRONOAMPEROMETRY,
+        SERVICE_LMP91000,
         CHARACTERISTIC_RESULTS
       );
 
@@ -427,7 +431,7 @@ const PeripheralDetails = () => {
     console.log("Voltages", voltages_string);
     writeCharacteristic(
       selectedPeripheralId,
-      SERVICE_CHRONOAMPEROMETRY,
+      SERVICE_LMP91000,
       CHARACTERISTIC_VOLTAGES,
       voltages_string
     );
@@ -435,7 +439,7 @@ const PeripheralDetails = () => {
     // TIA Gain
     writeCharacteristic(
       selectedPeripheralId,
-      SERVICE_CHRONOAMPEROMETRY,
+      SERVICE_LMP91000,
       CHARACTERISTIC_TIA_GAIN,
       tiaGain
     );
@@ -469,12 +473,23 @@ const PeripheralDetails = () => {
     "Cyclic Voltammetry", // linearly sweep voltage up then back down
     "Square Wave Voltammetry", // linear sweep with square wave modulation steps
     "Normal Pulse Voltammetry", // repeated short pulses of constant voltage
+    "Temperature",
   ];
   const experimentModeOptions = experimentModeLabels.map((label, index) => ({
     label,
     value: index.toString(),
   }));
   const [experimentMode, setExperimentMode] = React.useState("0");
+  const onExperimentChange = (value: string) => {
+    console.log("Experiment", value);
+    setExperimentMode(value);
+    writeCharacteristic(
+      selectedPeripheralId,
+      SERVICE_LMP91000,
+      CHARACTERISTIC_EXPERIMENT,
+      value
+    );
+  };
 
   return (
     <Portal.Host>
@@ -483,13 +498,11 @@ const PeripheralDetails = () => {
           <Appbar.BackAction onPress={() => navigation.goBack()} />
           <Appbar.Content title="LMP91000 Control" />
         </Appbar.Header>
-
         {/* <View style={styles.buttonGroup}>
           <Button mode='outlined' onPress={retrieveConnected} icon="refresh" disabled={true}>
             Refresh
           </Button>
         </View> */}
-
         {/* Select connected peripheral */}
         <View>
           {connectedPeripheralsList.length > 0 && (
@@ -501,19 +514,16 @@ const PeripheralDetails = () => {
             />
           )}
         </View>
-
         <Divider />
-
         {/* Experiment mode */}
         <View>
           <Dropdown
             label="Experiment mode"
             options={experimentModeOptions}
             value={experimentMode}
-            onChange={setExperimentMode}
+            onChange={onExperimentChange}
           />
         </View>
-
         <View>
           <Text variant="titleMedium">Results</Text>
           <Chart
@@ -584,7 +594,6 @@ const PeripheralDetails = () => {
             />
           </Chart>
         </View>
-
         <View style={styles.buttonGroup}>
           <Button
             mode="outlined"
@@ -613,11 +622,9 @@ const PeripheralDetails = () => {
             Save CSV
           </Button>
         </View>
-
         <View>
           <Text variant="titleMedium">Configuration</Text>
         </View>
-
         <View style={styles.buttonGroup}>
           <Button
             mode="outlined"
@@ -628,8 +635,12 @@ const PeripheralDetails = () => {
           </Button>
         </View>
 
-        <VoltageInput onChanged={setVoltages}></VoltageInput>
-
+        {
+          // show voltage input in CA mode only
+          experimentMode === "0" && (
+            <VoltageInput onChanged={setVoltages}></VoltageInput>
+          )
+        }
         <View>
           <Dropdown
             label="TIA Gain"
@@ -638,6 +649,13 @@ const PeripheralDetails = () => {
             onChange={onTiaGainChange}
           />
         </View>
+
+        {
+          // show CV setup in CV mode only
+          experimentMode === "1" && (
+            <CVSetup onChanged={(value) => console.log(value)}></CVSetup>
+          )
+        }
 
         <Portal>
           <Snackbar
